@@ -1,0 +1,15 @@
+# 编译
+cargo build
+
+# 获得音频信息
+cargo run -- get-audio-info
+
+# 播放
+cargo run -- play --file out.wav
+
+# 录制
+cargo run -- record --file out.wav --seconds 5
+
+# 远程录制
+cargo run -- remote-record --ip 192.168.42.1 --file out.wav --seconds 5
+cargo run -- remote-record --ip 127.0.0.1 --file out1.wav --seconds 5
