@@ -1,4 +1,4 @@
-## 在 /usr/local/bin/ 下新建一个脚本 start_av.sh
+## 在/usr/local/bin/下新建start_av.sh
 
 ```bash
 
@@ -42,4 +42,27 @@ echo "All started."
 如果无法运行，给脚本添加权限：
 ```bash
 chmod +x /usr/local/bin/start_av.sh
+```
+
+## 在/etc/systemd/system/下新建audio_camera.service
+
+```bash
+[Unit]
+Description=Auto-start Audio & Camera for kos-audio-camera
+After=network.target sound.target systemd-modules-load.service
+
+[Service]
+Type=simple
+
+User=root # ?
+# 转发，需要调整，不是x11
+Environment=DISPLAY=:0
+
+ExecStart=/usr/local/bin/start_av.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
 ```
