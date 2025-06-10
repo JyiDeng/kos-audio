@@ -1,14 +1,16 @@
 ## 在/usr/local/bin/下新建start_av.sh
 
+*需要安装 ffmpeg*
+
 ```bash
 
-BASE_DIR="/home/pi/kos-audio-camera" # 请改成自己的！
+BASE_DIR="/home/pi/kos-audio-camera"
+RTSP_URL="rtsp://192.168.0.48/h264"
 
-# 检测声卡
-echo "Waiting for audio device..."
+echo "=== Waiting for audio device ==="
 for i in {1..10}; do
     if arecord -l | grep -q "card"; then
-        echo "Audio device found."
+        echo "✔ Audio device found."
         break
     else
         echo "  retry $i/10..."
@@ -16,11 +18,11 @@ for i in {1..10}; do
     fi
 done
 
-# 检测摄像头
-echo "Waiting for video device..."
+echo "=== Waiting for RTSP stream at $RTSP_URL ==="
+
 for i in {1..10}; do
-    if v4l2-ctl --list-devices &>/dev/null; then
-        echo "Video device found."
+    if ffprobe -rtsp_transport tcp -timeout 1000000 -v error -show_streams "$RTSP_URL" > /dev/null 2>&1; then
+        echo "✔ RTSP stream is up."
         break
     else
         echo "  retry $i/10..."
@@ -28,23 +30,22 @@ for i in {1..10}; do
     fi
 done
 
-# 启动音频GUI
-echo "Starting audio_control_gui.py..."
-python3 "${BASE_DIR}/audio_control_gui.py" &
+echo "=== Starting audio_control_gui.py ==="
+python3 "${BASE_DIR}/audio_control_gui.py" \
+    >> /var/log/audio_control.log 2>&1 &
 
-# 启动摄像头
-echo "Starting camera..."
-python3 "${BASE_DIR}/camera/your_camera_main.py" &
+echo "=== Starting camera run_camera.py with RTSP ==="
+python3 "${BASE_DIR}/camera/run_camera.py" \
+    --rtsp-url "$RTSP_URL" \
+    >> /var/log/camera.log 2>&1 &
 
-echo "All started."
+echo "All services started."
+
 ```
 
-如果无法运行，给脚本添加权限：
-```bash
-chmod +x /usr/local/bin/start_av.sh
-```
+如果能支持x11就好了
 
-## 在/etc/systemd/system/下新建audio_camera.service
+*在/etc/systemd/system/下新建audio_camera.service*
 
 ```bash
 [Unit]
